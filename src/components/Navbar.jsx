@@ -1,5 +1,8 @@
+import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import Button from './Button'
+
+const authStorageKey = 'worknestMockLoggedIn'
 
 const navItems = [
   { label: 'Home', to: '/' },
@@ -9,7 +12,25 @@ const navItems = [
   { label: 'Contact', to: '/contact' },
 ]
 
+function getMockLoginState() {
+  return typeof window !== 'undefined' && localStorage.getItem(authStorageKey) === 'true'
+}
+
 function Navbar() {
+  const [isLoggedIn, setIsLoggedIn] = useState(getMockLoginState)
+
+  useEffect(() => {
+    const syncLoginState = () => setIsLoggedIn(getMockLoginState())
+
+    window.addEventListener('storage', syncLoginState)
+    window.addEventListener('worknest-auth-change', syncLoginState)
+
+    return () => {
+      window.removeEventListener('storage', syncLoginState)
+      window.removeEventListener('worknest-auth-change', syncLoginState)
+    }
+  }, [])
+
   const navLinkClass = ({ isActive }) =>
     [
       'inline-flex h-10 items-center rounded-lg px-3 text-sm font-medium',
@@ -29,9 +50,15 @@ function Navbar() {
               {item.label}
             </NavLink>
           ))}
-          <Button as={Link} to="/customer-login" className="ml-2">
-            Login
-          </Button>
+          {isLoggedIn ? (
+            <Button as={Link} to="/customer-home" variant="outline" className="ml-2">
+              Account
+            </Button>
+          ) : (
+            <Button as={Link} to="/customer-login" className="ml-2">
+              Login
+            </Button>
+          )}
         </div>
       </nav>
     </header>

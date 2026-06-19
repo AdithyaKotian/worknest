@@ -1,12 +1,44 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Button from '../components/Button'
 import Card from '../components/Card'
 import Input from '../components/Input'
 import { customer } from '../data/mockData'
 
+const authStorageKey = 'worknestMockLoggedIn'
+
 function CreateAccount() {
+  const [accountCreated, setAccountCreated] = useState(false)
+
+  function handleCreateAccount() {
+    localStorage.setItem(authStorageKey, 'true')
+    window.dispatchEvent(new Event('worknest-auth-change'))
+    setAccountCreated(true)
+  }
+
+  if (accountCreated) {
+    return (
+      <div className="mx-auto flex min-h-[70vh] max-w-xl items-center">
+        <Card
+          className="w-full"
+          title="Account created successfully."
+          subtitle="Please complete your profile to get better workspace recommendations."
+        >
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button as={Link} to="/manage-profile">
+              Complete Profile
+            </Button>
+            <Button as={Link} to="/customer-home" variant="outline">
+              Continue to Customer Home
+            </Button>
+          </div>
+        </Card>
+      </div>
+    )
+  }
+
   return (
-    <div className="mx-auto flex min-h-[70vh] max-w-2xl items-center">
+    <div className="mx-auto flex min-h-[70vh] max-w-xl items-center">
       <Card
         className="w-full"
         title="Create Account"
@@ -27,24 +59,11 @@ function CreateAccount() {
             </p>
           </div>
 
-          <Input label="Gmail" type="email" name="gmail" placeholder="Enter Gmail" defaultValue={customer.email} />
-          <Input label="Location" name="location" placeholder="Enter location" defaultValue={customer.location} />
-          <Input
-            label="Profile Type"
-            name="profileType"
-            placeholder="Enter profile type"
-            defaultValue={customer.profileType}
-          />
-          <Input
-            label="Company Name"
-            name="companyName"
-            placeholder="Enter company name"
-            defaultValue={customer.companyName}
-          />
+          <Input label="Email" type="email" name="email" placeholder="Enter email" defaultValue={customer.email} />
         </div>
 
         <div className="mt-6">
-          <Button as={Link} to="/customer-home" className="w-full sm:w-auto">
+          <Button onClick={handleCreateAccount} className="w-full sm:w-auto">
             Create Account
           </Button>
         </div>

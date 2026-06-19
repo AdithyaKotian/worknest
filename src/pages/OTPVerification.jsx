@@ -3,6 +3,13 @@ import Button from '../components/Button'
 import Card from '../components/Card'
 import { customer } from '../data/mockData'
 
+const authStorageKey = 'worknestMockLoggedIn'
+
+function setMockLoginState() {
+  localStorage.setItem(authStorageKey, 'true')
+  window.dispatchEvent(new Event('worknest-auth-change'))
+}
+
 function OTPVerification() {
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-md items-center">
@@ -24,7 +31,7 @@ function OTPVerification() {
             ))}
           </div>
 
-          <Button as={Link} to="/customer-home" className="w-full">
+          <Button as={Link} to="/customer-home" className="w-full" onClick={setMockLoginState}>
             Verify & Continue
           </Button>
 

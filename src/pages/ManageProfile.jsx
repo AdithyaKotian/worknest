@@ -1,9 +1,21 @@
+import { useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
 import Card from '../components/Card'
 import Input from '../components/Input'
 import { customer } from '../data/mockData'
 
 function ManageProfile() {
+  const navigate = useNavigate()
+
+  function handleSaveChanges() {
+    navigate('/customer-home', {
+      state: {
+        profileUpdated: true,
+        openAccountDrawer: true,
+      },
+    })
+  }
+
   return (
     <div className="space-y-8">
       <div>
@@ -23,7 +35,7 @@ function ManageProfile() {
           </div>
 
           <div className="mt-6">
-            <Button>Save Changes</Button>
+            <Button onClick={handleSaveChanges}>Save Changes</Button>
           </div>
         </Card>
       </div>
