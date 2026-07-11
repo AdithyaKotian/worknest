@@ -209,9 +209,13 @@ export const adminSummary = [
 
 export const roomStatus = [
   {
-    roomName: "Meeting Room A",
-    status: "Booked",
-    action: "View Payment / Cancel / Refund",
+  id: 1,
+  roomName: "Meeting Room A",
+  roomCode: "RM-101",
+  location: "Dakshina Kannada",
+  branch: "Mangalore Central",
+  capacity: 8,
+  status: "Booked",
   },
   {
     roomName: "Conference Room",
@@ -276,3 +280,121 @@ export const paymentRecords = [
     emailStatus: "Cancellation Mail Sent",
   },
 ];
+
+export const adminLocations = [
+  {
+    id: 1,
+    name: "Dakshina Kannada",
+    branches: [
+      {
+        id: 1,
+        name: "Mangalore Central",
+        totalBookings: 128,
+        availableRooms: 12,
+        bookedRooms: 8,
+        revenue: 125000,
+      },
+      {
+        id: 2,
+        name: "Surathkal",
+        totalBookings: 82,
+        availableRooms: 9,
+        bookedRooms: 5,
+        revenue: 86000,
+      },
+    ],
+  },
+  {
+    id: 2,
+    name: "Udupi",
+    branches: [
+      {
+        id: 1,
+        name: "Udupi City",
+        totalBookings: 97,
+        availableRooms: 11,
+        bookedRooms: 7,
+        revenue: 98000,
+      },
+      {
+        id: 2,
+        name: "Manipal",
+        totalBookings: 74,
+        availableRooms: 10,
+        bookedRooms: 6,
+        revenue: 79000,
+      },
+    ],
+  },
+  {
+    id: 3,
+    name: "Chikkamagaluru",
+    branches: [
+      {
+        id: 1,
+        name: "City Center",
+        totalBookings: 61,
+        availableRooms: 8,
+        bookedRooms: 4,
+        revenue: 65000,
+      },
+    ],
+  },
+  {
+    id: 4,
+    name: "Kasaragod",
+    branches: [
+      {
+        id: 1,
+        name: "Main Branch",
+        totalBookings: 53,
+        availableRooms: 7,
+        bookedRooms: 3,
+        revenue: 54000,
+      },
+    ],
+  },
+];
+
+export const roomManagementData = [
+  {
+    id: 1,
+    roomName: "Meeting Room A",
+    location: "Dakshina Kannada",
+    branch: "Mangalore Central",
+    capacity: 8,
+    status: "Available",
+  },
+  {
+    id: 2,
+    roomName: "Conference Room",
+    location: "Dakshina Kannada",
+    branch: "Surathkal",
+    capacity: 15,
+    status: "Booked",
+  },
+  {
+    id: 3,
+    roomName: "Private Cabin",
+    location: "Udupi",
+    branch: "Manipal",
+    capacity: 4,
+    status: "Available",
+  },
+  {
+    id: 4,
+    roomName: "Training Room",
+    location: "Chikmagalur",
+    branch: "City Center",
+    capacity: 20,
+    status: "Maintenance",
+  },
+  {
+    id: 5,
+    roomName: "Discussion Room",
+    location: "Kasaragod",
+    branch: "Town Branch",
+    capacity: 6,
+    status: "Disabled",
+  },
+]
