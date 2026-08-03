@@ -52,14 +52,6 @@ function Home() {
           <p className="mt-4 max-w-2xl text-sm leading-6 text-[#6B7280] sm:text-base">
             Choose cabins, meeting rooms, conference spaces, and shared desks with flexible hourly booking and subscription plans.
           </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Button as={Link} to="/slot-booking">
-              Book a Slot
-            </Button>
-            <Button as={Link} to="/available-rooms" variant="outline">
-              View Rooms
-            </Button>
-          </div>
         </div>
 
         <div className="relative min-h-64 overflow-hidden rounded-lg border border-[#E5E7EB] bg-[#F3F4F6] text-sm font-medium text-[#6B7280]">

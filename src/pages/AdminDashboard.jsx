@@ -229,6 +229,7 @@ function AdminDashboard() {
   const [selectedBranch, setSelectedBranch] = useState("All Branches");
   
   // Room Management states
+  const [rooms, setRooms] = useState(roomManagementData)
   const [search, setSearch] = useState("");
   const [filterLocation, setFilterLocation] = useState("All Locations");
   const [filterBranch, setFilterBranch] = useState("All Branches");
@@ -270,6 +271,62 @@ function AdminDashboard() {
     setPaymentDateRange(dateData);
     console.log("Payment date range:", dateData);
   };
+
+  // Room action handlers
+  const handleBookRoom = (roomId) => {
+    setRooms(rooms.map(room => 
+      room.id === roomId ? { ...room, status: 'Booked' } : room
+    ))
+    setActiveMenu(null)
+    console.log('Book room:', roomId)
+  }
+
+  const handleReserveRoom = (roomId) => {
+    setRooms(rooms.map(room => 
+      room.id === roomId ? { ...room, status: 'Reserved' } : room
+    ))
+    setActiveMenu(null)
+    console.log('Reserve room:', roomId)
+  }
+
+  const handleReleaseRoom = (roomId) => {
+    setRooms(rooms.map(room => 
+      room.id === roomId ? { ...room, status: 'Available' } : room
+    ))
+    setActiveMenu(null)
+    console.log('Release room:', roomId)
+  }
+
+  const handleReleaseBooking = (roomId) => {
+    setRooms(rooms.map(room => 
+      room.id === roomId ? { ...room, status: 'Available' } : room
+    ))
+    setActiveMenu(null)
+    console.log('Release booking:', roomId)
+  }
+
+  const handleEnableRoom = (roomId) => {
+    setRooms(rooms.map(room => 
+      room.id === roomId ? { ...room, status: 'Available' } : room
+    ))
+    setActiveMenu(null)
+    console.log('Enable room:', roomId)
+  }
+
+  const handleDisableRoom = (roomId) => {
+    setRooms(rooms.map(room => 
+      room.id === roomId ? { ...room, status: 'Disabled' } : room
+    ))
+    setActiveMenu(null)
+    console.log('Disable room:', roomId)
+  }
+
+  const handleDeleteRoom = () => {
+    setRooms(rooms.filter(room => room.id !== deleteRoom.id))
+    console.log('Deleting room:', deleteRoom)
+    setDeleteRoom(null)
+    setActiveMenu(null)
+  }
 
   // Step 1: Find location and branch data
   const locationData =
@@ -359,7 +416,7 @@ function AdminDashboard() {
   };
 
   // Room Management filtering logic using correct field names
-  const filteredRooms = roomManagementData.filter((room) => {
+  const filteredRooms = rooms.filter((room) => {
     const matchesSearch = search === "" || 
       room.roomName.toLowerCase().includes(search.toLowerCase());
     
@@ -375,7 +432,7 @@ function AdminDashboard() {
     return matchesSearch && matchesLocation && matchesBranch && matchesStatus;
   });
 
-  const uniqueBranches = [...new Set(roomManagementData.map(room => room.branch))];
+  const uniqueBranches = [...new Set(rooms.map(room => room.branch))];
   const branchCount = uniqueBranches.length;
 
   const clearFilters = () => {
@@ -383,22 +440,6 @@ function AdminDashboard() {
     setFilterLocation("All Locations");
     setFilterBranch("All Branches");
     setFilterStatus("All Statuses");
-  };
-
-  const handleMenuAction = (action, room) => {
-    setActiveMenu(null);
-    if (action === 'delete') {
-      setDeleteRoom(room);
-    } else if (action === 'disable') {
-      console.log('Disable room:', room);
-    } else if (action === 'enable') {
-      console.log('Enable room:', room);
-    }
-  };
-
-  const handleDeleteRoom = () => {
-    console.log('Deleting room:', deleteRoom);
-    setDeleteRoom(null);
   };
 
   // Get the dashboard data for the selected branch
@@ -436,6 +477,70 @@ function AdminDashboard() {
     dashboardData.summary.bookedRooms +
     dashboardData.summary.reservedRooms;
   const paymentRoomOptions = [...new Set(paymentRecords.map((record) => record.room))];
+
+  // Status-based action menu items
+  const getRoomActions = (room) => {
+    switch (room.status) {
+      case 'Available':
+        return [
+          { label: 'Edit Room', action: 'edit' },
+          { label: 'Book Room', action: 'book' },
+          { label: 'Reserve Room', action: 'reserve' },
+          { label: 'Disable Room', action: 'disable' },
+          { label: 'Delete Room', action: 'delete', danger: true },
+        ]
+      case 'Booked':
+        return [
+          { label: 'Edit Room', action: 'edit' },
+          { label: 'Release Booking', action: 'releaseBooking' },
+          { label: 'Disable Room', action: 'disable' },
+          { label: 'Delete Room', action: 'delete', danger: true },
+        ]
+      case 'Reserved':
+        return [
+          { label: 'Edit Room', action: 'edit' },
+          { label: 'Release Room', action: 'release' },
+          { label: 'Disable Room', action: 'disable' },
+          { label: 'Delete Room', action: 'delete', danger: true },
+        ]
+      case 'Disabled':
+        return [
+          { label: 'Enable Room', action: 'enable' },
+          { label: 'Delete Room', action: 'delete', danger: true },
+        ]
+      default:
+        return []
+    }
+  }
+
+  const handleAction = (action, room) => {
+    switch (action) {
+      case 'book':
+        handleBookRoom(room.id)
+        break
+      case 'reserve':
+        handleReserveRoom(room.id)
+        break
+      case 'release':
+        handleReleaseRoom(room.id)
+        break
+      case 'releaseBooking':
+        handleReleaseBooking(room.id)
+        break
+      case 'enable':
+        handleEnableRoom(room.id)
+        break
+      case 'disable':
+        handleDisableRoom(room.id)
+        break
+      case 'delete':
+        setDeleteRoom(room)
+        setActiveMenu(null)
+        break
+      default:
+        setActiveMenu(null)
+    }
+  }
 
   return (
     <div className="space-y-8">
@@ -692,7 +797,7 @@ function AdminDashboard() {
       {/* Room Management Section */}
       <Card
         title="Room Management"
-        subtitle={`${roomManagementData.length} Rooms across ${branchCount} Branches`}
+        subtitle={`${rooms.length} Rooms across ${branchCount} Branches`}
       >
         <div className="mb-6 flex flex-wrap items-center gap-3">
           <Button>+ Create Room</Button>
@@ -711,7 +816,7 @@ function AdminDashboard() {
             className="h-10 rounded-lg border border-[#E5E7EB] bg-white px-3 text-sm text-[#111827] outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100"
           >
             <option value="All Locations">Location ▼</option>
-            {[...new Set(roomManagementData.map(room => room.location))].map((location) => (
+            {[...new Set(rooms.map(room => room.location))].map((location) => (
               <option key={location}>{location}</option>
             ))}
           </select>
@@ -742,7 +847,7 @@ function AdminDashboard() {
 
         {/* Showing X of Y */}
         <div className="mb-4 text-sm text-[#6B7280]">
-          Showing <span className="font-semibold text-[#111827]">{filteredRooms.length}</span> of <span className="font-semibold text-[#111827]">{roomManagementData.length}</span> Rooms
+          Showing <span className="font-semibold text-[#111827]">{filteredRooms.length}</span> of <span className="font-semibold text-[#111827]">{rooms.length}</span> Rooms
         </div>
 
         {/* Empty State */}
@@ -792,50 +897,36 @@ function AdminDashboard() {
                       <StatusBadge status={room.status} />
                     </td>
                     <td className="py-3 pl-4">
-                      <div className="flex items-center gap-2">
-                        <Button variant="outline">Edit</Button>
+                      <div className="relative inline-block">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveMenu(
+                              activeMenu === room.id ? null : room.id
+                            );
+                          }}
+                          className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E5E7EB] bg-white text-[#6B7280] hover:bg-[#F8FAFC]"
+                        >
+                          ⋮
+                        </button>
                         
-                        <div className="relative inline-block">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveMenu(
-                                activeMenu === room.id ? null : room.id
-                              );
-                            }}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E5E7EB] bg-white text-[#6B7280] hover:bg-[#F8FAFC]"
-                          >
-                            ⋮
-                          </button>
-                          
-                          {activeMenu === room.id && (
-                            <div className="absolute right-0 top-full mt-2 w-44 rounded-xl border bg-white shadow-xl z-50">
-                              <div className="py-1">
-                                {room.status === 'Disabled' ? (
-                                  <button
-                                    onClick={() => handleMenuAction('enable', room)}
-                                    className="block w-full px-4 py-2 text-left text-sm text-[#111827] hover:bg-[#F8FAFC]"
-                                  >
-                                    Enable Room
-                                  </button>
-                                ) : (
-                                  <button
-                                    onClick={() => handleMenuAction('disable', room)}
-                                    className="block w-full px-4 py-2 text-left text-sm text-[#111827] hover:bg-[#F8FAFC]"
-                                  >
-                                    Disable Room
-                                  </button>
-                                )}
+                        {activeMenu === room.id && (
+                          <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border bg-white shadow-xl z-50">
+                            <div className="py-1">
+                              {getRoomActions(room).map((action) => (
                                 <button
-                                  onClick={() => handleMenuAction('delete', room)}
-                                  className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-[#F8FAFC]"
+                                  key={action.action}
+                                  onClick={() => handleAction(action.action, room)}
+                                  className={`block w-full px-4 py-2 text-left text-sm transition-colors duration-150 hover:bg-[#F8FAFC] ${
+                                    action.danger ? 'text-red-600' : 'text-[#111827]'
+                                  }`}
                                 >
-                                  Delete Room
+                                  {action.label}
                                 </button>
-                              </div>
+                              ))}
                             </div>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
                     </td>
                   </tr>
