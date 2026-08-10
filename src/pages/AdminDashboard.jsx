@@ -224,57 +224,105 @@ function getStatusDistribution(summary) {
   ]
 }
 
+/**
+ * Returns today's date as a local-time YYYY-MM-DD string.
+ * Avoids UTC offset issues that occur with toISOString().split('T')[0].
+ */
+function getTodayLocal() {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+/**
+ * Formats a YYYY-MM-DD date string into a human-readable local date.
+ * Splits the string manually to avoid UTC interpretation by new Date(str).
+ */
+function formatLocalDate(dateStr) {
+  const [year, month, day] = dateStr.split('-')
+  const date = new Date(Number(year), Number(month) - 1, Number(day))
+  return date.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+/**
+ * Builds the "Showing: Today — 10 Aug 2026" display text
+ * based on the current date-range selection.
+ */
+function getDateRangeDisplay(dateData) {
+  if (!dateData || dateData.range === 'custom') return null
+
+  switch (dateData.range) {
+    case 'today':
+      return `Today — ${formatLocalDate(dateData.from)}`
+    case 'week':
+      return `Week — ${formatLocalDate(dateData.from)} – ${formatLocalDate(dateData.to)}`
+    case 'month':
+      return `Month — ${formatLocalDate(dateData.from)} – ${formatLocalDate(dateData.to)}`
+    case 'year':
+      return `Year — ${formatLocalDate(dateData.from)} – ${formatLocalDate(dateData.to)}`
+    default:
+      return null
+  }
+}
+
 function AdminDashboard() {
-  const [selectedLocation, setSelectedLocation] = useState("All Locations");
-  const [selectedBranch, setSelectedBranch] = useState("All Branches");
-  
+  const [selectedLocation, setSelectedLocation] = useState("All Locations")
+  const [selectedBranch, setSelectedBranch] = useState("All Branches")
+
   // Room Management states
   const [rooms, setRooms] = useState(roomManagementData)
-  const [search, setSearch] = useState("");
-  const [filterLocation, setFilterLocation] = useState("All Locations");
-  const [filterBranch, setFilterBranch] = useState("All Branches");
-  const [filterStatus, setFilterStatus] = useState("All Statuses");
-  const [activeMenu, setActiveMenu] = useState(null);
-  const [deleteRoom, setDeleteRoom] = useState(null);
+  const [search, setSearch] = useState("")
+  const [filterLocation, setFilterLocation] = useState("All Locations")
+  const [filterBranch, setFilterBranch] = useState("All Branches")
+  const [filterStatus, setFilterStatus] = useState("All Statuses")
+  const [activeMenu, setActiveMenu] = useState(null)
+  const [deleteRoom, setDeleteRoom] = useState(null)
 
-  // Date range states for analytics and payment records
+  const todayLocal = getTodayLocal()
+
   const [analyticsDateRange, setAnalyticsDateRange] = useState({
     range: "today",
-    from: new Date().toISOString().split("T")[0],
-    to: new Date().toISOString().split("T")[0],
-  });
+    from: todayLocal,
+    to: todayLocal,
+  })
 
   const [paymentDateRange, setPaymentDateRange] = useState({
     range: "today",
-    from: new Date().toISOString().split("T")[0],
-    to: new Date().toISOString().split("T")[0],
-  });
+    from: todayLocal,
+    to: todayLocal,
+  })
 
   // Close menu when clicking outside
   useEffect(() => {
     const handleClick = () => {
-      setActiveMenu(null);
-    };
+      setActiveMenu(null)
+    }
 
-    window.addEventListener("click", handleClick);
+    window.addEventListener("click", handleClick)
 
     return () =>
-      window.removeEventListener("click", handleClick);
-  }, []);
+      window.removeEventListener("click", handleClick)
+  }, [])
 
   const handleAnalyticsDateChange = (dateData) => {
-    setAnalyticsDateRange(dateData);
-    console.log("Analytics date range:", dateData);
-  };
+    setAnalyticsDateRange(dateData)
+    console.log("Analytics date range:", dateData)
+  }
 
   const handlePaymentDateChange = (dateData) => {
-    setPaymentDateRange(dateData);
-    console.log("Payment date range:", dateData);
-  };
+    setPaymentDateRange(dateData)
+    console.log("Payment date range:", dateData)
+  }
 
   // Room action handlers
   const handleBookRoom = (roomId) => {
-    setRooms(rooms.map(room => 
+    setRooms(rooms.map(room =>
       room.id === roomId ? { ...room, status: 'Booked' } : room
     ))
     setActiveMenu(null)
@@ -282,7 +330,7 @@ function AdminDashboard() {
   }
 
   const handleReserveRoom = (roomId) => {
-    setRooms(rooms.map(room => 
+    setRooms(rooms.map(room =>
       room.id === roomId ? { ...room, status: 'Reserved' } : room
     ))
     setActiveMenu(null)
@@ -290,7 +338,7 @@ function AdminDashboard() {
   }
 
   const handleReleaseRoom = (roomId) => {
-    setRooms(rooms.map(room => 
+    setRooms(rooms.map(room =>
       room.id === roomId ? { ...room, status: 'Available' } : room
     ))
     setActiveMenu(null)
@@ -298,7 +346,7 @@ function AdminDashboard() {
   }
 
   const handleReleaseBooking = (roomId) => {
-    setRooms(rooms.map(room => 
+    setRooms(rooms.map(room =>
       room.id === roomId ? { ...room, status: 'Available' } : room
     ))
     setActiveMenu(null)
@@ -306,7 +354,7 @@ function AdminDashboard() {
   }
 
   const handleEnableRoom = (roomId) => {
-    setRooms(rooms.map(room => 
+    setRooms(rooms.map(room =>
       room.id === roomId ? { ...room, status: 'Available' } : room
     ))
     setActiveMenu(null)
@@ -314,7 +362,7 @@ function AdminDashboard() {
   }
 
   const handleDisableRoom = (roomId) => {
-    setRooms(rooms.map(room => 
+    setRooms(rooms.map(room =>
       room.id === roomId ? { ...room, status: 'Disabled' } : room
     ))
     setActiveMenu(null)
@@ -328,7 +376,6 @@ function AdminDashboard() {
     setActiveMenu(null)
   }
 
-  // Step 1: Find location and branch data
   const locationData =
     selectedLocation === "All Locations"
       ? null
@@ -343,7 +390,6 @@ function AdminDashboard() {
           (branch) => branch.name === selectedBranch
         )
 
-  // Step 2: Create one source of truth - activeBranches
   const activeBranches =
     selectedLocation === "All Locations"
       ? adminLocations.flatMap((location) => location.branches)
@@ -402,52 +448,49 @@ function AdminDashboard() {
     }
   )
 
-  const avgOccupancy = activeBranches.length > 0 
-    ? Math.round(analytics.occupancy / activeBranches.length) 
+  const avgOccupancy = activeBranches.length > 0
+    ? Math.round(analytics.occupancy / activeBranches.length)
     : 0
 
   const handleLocationChange = (event) => {
-    setSelectedLocation(event.target.value);
-    setSelectedBranch("All Branches");
-  };
+    setSelectedLocation(event.target.value)
+    setSelectedBranch("All Branches")
+  }
 
   const handleBranchChange = (event) => {
-    setSelectedBranch(event.target.value);
-  };
+    setSelectedBranch(event.target.value)
+  }
 
-  // Room Management filtering logic using correct field names
   const filteredRooms = rooms.filter((room) => {
-    const matchesSearch = search === "" || 
-      room.roomName.toLowerCase().includes(search.toLowerCase());
-    
-    const matchesLocation = filterLocation === "All Locations" || 
-      room.location === filterLocation;
-    
-    const matchesBranch = filterBranch === "All Branches" || 
-      room.branch === filterBranch;
-    
-    const matchesStatus = filterStatus === "All Statuses" || 
-      room.status === filterStatus;
-    
-    return matchesSearch && matchesLocation && matchesBranch && matchesStatus;
-  });
+    const matchesSearch = search === "" ||
+      room.roomName.toLowerCase().includes(search.toLowerCase())
 
-  const uniqueBranches = [...new Set(rooms.map(room => room.branch))];
-  const branchCount = uniqueBranches.length;
+    const matchesLocation = filterLocation === "All Locations" ||
+      room.location === filterLocation
+
+    const matchesBranch = filterBranch === "All Branches" ||
+      room.branch === filterBranch
+
+    const matchesStatus = filterStatus === "All Statuses" ||
+      room.status === filterStatus
+
+    return matchesSearch && matchesLocation && matchesBranch && matchesStatus
+  })
+
+  const uniqueBranches = [...new Set(rooms.map(room => room.branch))]
+  const branchCount = uniqueBranches.length
 
   const clearFilters = () => {
-    setSearch("");
-    setFilterLocation("All Locations");
-    setFilterBranch("All Branches");
-    setFilterStatus("All Statuses");
-  };
+    setSearch("")
+    setFilterLocation("All Locations")
+    setFilterBranch("All Branches")
+    setFilterStatus("All Statuses")
+  }
 
-  // Get the dashboard data for the selected branch
   const selectedBranchData = selectedBranch !== "All Branches" && selectedLocation !== "All Locations"
-    ? branchDashboardData[selectedBranch] 
-    : null;
+    ? branchDashboardData[selectedBranch]
+    : null
 
-  // Use combined data for "All Branches" or specific branch data
   const dashboardData = selectedBranchData || {
     summary: summary,
     bookingTrend: [],
@@ -459,26 +502,24 @@ function AdminDashboard() {
       occupancy: branch.analytics.occupancy,
       status: `${branch.summary.bookedRooms} booked`,
     })),
-  };
+  }
 
-  // Dynamic headings
-  const scopeLabel = selectedLocation === "All Locations" 
-    ? "All Locations" 
-    : selectedBranch === "All Branches" 
-      ? selectedLocation 
-      : selectedBranch;
+  const scopeLabel = selectedLocation === "All Locations"
+    ? "All Locations"
+    : selectedBranch === "All Branches"
+      ? selectedLocation
+      : selectedBranch
 
-  const maxTrendValue = Math.max(...dashboardData.bookingTrend, 1);
-  const maxDailyValue = Math.max(...dashboardData.dailyOverview, 1);
-  const maxTimelineValue = Math.max(...dashboardData.timeline.map((item) => item.bookings), 1);
-  const occupancy = avgOccupancy;
+  const maxTrendValue = Math.max(...dashboardData.bookingTrend, 1)
+  const maxDailyValue = Math.max(...dashboardData.dailyOverview, 1)
+  const maxTimelineValue = Math.max(...dashboardData.timeline.map((item) => item.bookings), 1)
+  const occupancy = avgOccupancy
   const totalStatusRooms =
     dashboardData.summary.availableRooms +
     dashboardData.summary.bookedRooms +
-    dashboardData.summary.reservedRooms;
-  const paymentRoomOptions = [...new Set(paymentRecords.map((record) => record.room))];
+    dashboardData.summary.reservedRooms
+  const paymentRoomOptions = [...new Set(paymentRecords.map((record) => record.room))]
 
-  // Status-based action menu items
   const getRoomActions = (room) => {
     switch (room.status) {
       case 'Available':
@@ -617,6 +658,11 @@ function AdminDashboard() {
       {/* Analytics Date Range Filter */}
       <Card className="bg-[#F8FAFC]">
         <DateRangeFilter onChange={handleAnalyticsDateChange} />
+        {getDateRangeDisplay(analyticsDateRange) && (
+          <p className="mt-3 text-sm font-medium text-[#1E3A8A]">
+            Showing: {getDateRangeDisplay(analyticsDateRange)}
+          </p>
+        )}
       </Card>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -801,7 +847,7 @@ function AdminDashboard() {
       >
         <div className="mb-6 flex flex-wrap items-center gap-3">
           <Button>+ Create Room</Button>
-          
+
           <input
             type="text"
             placeholder="Search Room"
@@ -809,8 +855,8 @@ function AdminDashboard() {
             onChange={(e) => setSearch(e.target.value)}
             className="h-10 rounded-lg border border-[#E5E7EB] bg-white px-3 text-sm text-[#111827] outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100"
           />
-          
-          <select 
+
+          <select
             value={filterLocation}
             onChange={(e) => setFilterLocation(e.target.value)}
             className="h-10 rounded-lg border border-[#E5E7EB] bg-white px-3 text-sm text-[#111827] outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100"
@@ -820,8 +866,8 @@ function AdminDashboard() {
               <option key={location}>{location}</option>
             ))}
           </select>
-          
-          <select 
+
+          <select
             value={filterBranch}
             onChange={(e) => setFilterBranch(e.target.value)}
             className="h-10 rounded-lg border border-[#E5E7EB] bg-white px-3 text-sm text-[#111827] outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100"
@@ -831,8 +877,8 @@ function AdminDashboard() {
               <option key={branch}>{branch}</option>
             ))}
           </select>
-          
-          <select 
+
+          <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
             className="h-10 rounded-lg border border-[#E5E7EB] bg-white px-3 text-sm text-[#111827] outline-none focus:border-[#1E3A8A] focus:ring-2 focus:ring-blue-100"
@@ -845,12 +891,10 @@ function AdminDashboard() {
           </select>
         </div>
 
-        {/* Showing X of Y */}
         <div className="mb-4 text-sm text-[#6B7280]">
           Showing <span className="font-semibold text-[#111827]">{filteredRooms.length}</span> of <span className="font-semibold text-[#111827]">{rooms.length}</span> Rooms
         </div>
 
-        {/* Empty State */}
         {filteredRooms.length === 0 ? (
           <div className="rounded-lg border border-[#E5E7EB] bg-[#F8FAFC] p-12 text-center">
             <p className="text-sm font-medium text-[#6B7280]">No rooms match your filters</p>
@@ -878,7 +922,7 @@ function AdminDashboard() {
               </thead>
               <tbody className="divide-y divide-[#E5E7EB]">
                 {filteredRooms.map((room) => (
-                  <tr 
+                  <tr
                     key={room.id}
                     className={room.status === "Disabled" ? "opacity-55" : ""}
                   >
@@ -900,16 +944,16 @@ function AdminDashboard() {
                       <div className="relative inline-block">
                         <button
                           onClick={(e) => {
-                            e.stopPropagation();
+                            e.stopPropagation()
                             setActiveMenu(
                               activeMenu === room.id ? null : room.id
-                            );
+                            )
                           }}
                           className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E5E7EB] bg-white text-[#6B7280] hover:bg-[#F8FAFC]"
                         >
                           ⋮
                         </button>
-                        
+
                         {activeMenu === room.id && (
                           <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border bg-white shadow-xl z-50">
                             <div className="py-1">
@@ -944,6 +988,11 @@ function AdminDashboard() {
       >
         <div className="mb-6">
           <DateRangeFilter onChange={handlePaymentDateChange} />
+          {getDateRangeDisplay(paymentDateRange) && (
+            <p className="mt-3 text-sm font-medium text-[#1E3A8A]">
+              Showing: {getDateRangeDisplay(paymentDateRange)}
+            </p>
+          )}
         </div>
 
         <div className="mb-6 grid gap-4 md:grid-cols-3">
