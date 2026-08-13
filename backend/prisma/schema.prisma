@@ -1,0 +1,195 @@
+// =============================================================================
+// WorkNest — Prisma Schema
+// =============================================================================
+// Run `npx prisma generate` after modifying this file.
+// Run `npx prisma db push`   to sync the schema with your database.
+// Run `npx prisma migrate dev --name <name>` to create a migration.
+//
+// Note: DATABASE_URL is configured in prisma.config.ts, not here.
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// =============================================================================
+// Enums
+// =============================================================================
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}
+
+enum RoomType {
+  PRIVATE_CABIN
+  MEETING_ROOM
+  CONFERENCE_ROOM
+  SHARED_WORKSPACE
+}
+
+enum PricingUnit {
+  HOUR
+  DAY
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+// =============================================================================
+// Models — Users & Authentication
+// =============================================================================
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  phone        String?  @unique
+  passwordHash String?
+  role         UserRole @default(CUSTOMER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  bookings Booking[]
+  payments Payment[]
+
+  @@map("users")
+}
+
+// =============================================================================
+// Models — Locations & Branches
+// =============================================================================
+
+model Location {
+  id        Int      @id @default(autoincrement())
+  name      String
+  address   String
+  city      String
+  state     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branches Branch[]
+
+  @@map("locations")
+}
+
+model Branch {
+  id         Int      @id @default(autoincrement())
+  name       String
+  address    String?
+  locationId Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  rooms    Room[]
+
+  @@index([locationId])
+  @@map("branches")
+}
+
+// =============================================================================
+// Models — Rooms
+// =============================================================================
+
+model Room {
+  id          Int         @id @default(autoincrement())
+  name        String
+  type        RoomType
+  capacity    Int?
+  price       Decimal     @db.Decimal(10, 2)
+  pricingUnit PricingUnit
+  description String?
+  isActive    Boolean     @default(true)
+  branchId    Int
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  branch   Branch    @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@index([branchId])
+  @@index([type])
+  @@index([isActive])
+  @@map("rooms")
+}
+
+// =============================================================================
+// Models — Bookings
+// =============================================================================
+
+model Booking {
+  id          String        @id @default(cuid())
+  userId      String
+  roomId      Int
+  startTime   DateTime
+  endTime     DateTime
+  status      BookingStatus @default(PENDING)
+  totalAmount Decimal       @db.Decimal(10, 2)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+  room Room @relation(fields: [roomId], references: [id])
+
+  @@index([userId])
+  @@index([roomId])
+  @@index([startTime])
+  @@index([endTime])
+  @@index([status])
+  @@map("bookings")
+}
+
+// =============================================================================
+// Models — Subscriptions
+// =============================================================================
+
+model Subscription {
+  id        String   @id @default(cuid())
+  name      String
+  price     Decimal  @db.Decimal(10, 2)
+  duration  Int
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("subscriptions")
+}
+
+// =============================================================================
+// Models — Payments
+// =============================================================================
+
+model Payment {
+  id                String        @id @default(cuid())
+  userId            String
+  amount            Decimal       @db.Decimal(10, 2)
+  currency          String        @default("INR")
+  status            PaymentStatus @default(PENDING)
+  razorpayOrderId   String?       @unique
+  razorpayPaymentId String?       @unique
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@map("payments")
+}
