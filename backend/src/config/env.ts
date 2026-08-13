@@ -1,15 +1,41 @@
-import "dotenv/config";
+// =============================================================================
+// WorkNest — Environment Variables
+// =============================================================================
+// Loads and validates environment variables at startup.
+// Throws an error if any required variable is missing.
+// =============================================================================
 
-const requiredEnv = ["DATABASE_URL"];
+import 'dotenv/config'
 
-for (const key of requiredEnv) {
+// =============================================================================
+// Required Environment Variables
+// =============================================================================
+
+const REQUIRED_ENV_KEYS = ['DATABASE_URL', 'JWT_SECRET'] as const
+
+for (const key of REQUIRED_ENV_KEYS) {
   if (!process.env[key]) {
-    throw new Error(`Missing required environment variable: ${key}`);
+    throw new Error(`Missing required environment variable: ${key}`)
   }
 }
 
+// =============================================================================
+// Export
+// =============================================================================
+
 export const env = {
-  databaseUrl: process.env.DATABASE_URL!,
+  /** PostgreSQL connection string */
+  databaseUrl: process.env.DATABASE_URL as string,
+
+  /** Server port (defaults to 5000) */
   port: Number(process.env.PORT) || 5000,
-  nodeEnv: process.env.NODE_ENV || "development",
-};
+
+  /** Current Node.js environment (development | production | test) */
+  nodeEnv: process.env.NODE_ENV || 'development',
+
+  /** JWT signing secret */
+  jwtSecret: process.env.JWT_SECRET as string,
+
+  /** JWT token expiry (defaults to 7d) */
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
+} as const
