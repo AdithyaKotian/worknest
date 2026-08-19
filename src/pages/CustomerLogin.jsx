@@ -19,8 +19,8 @@ function CustomerLogin() {
 
     try {
       const response = await login(email, password)
-      const token = response.data?.token
-      const user = response.data?.user
+      const token = response?.data?.token || response?.token
+      const user = response?.data?.user || response?.user
 
       if (token) {
         localStorage.setItem('worknestToken', token)
@@ -29,11 +29,13 @@ function CustomerLogin() {
         localStorage.setItem('worknestMockLoggedIn', 'true')
         window.dispatchEvent(new Event('worknest-auth-change'))
 
-        if (user?.role === 'ADMIN') {
-          navigate('/admin-dashboard')
+        if (user?.role === 'ADMIN' || user?.role?.toUpperCase() === 'ADMIN') {
+          navigate('/admin-dashboard', { replace: true })
         } else {
-          navigate('/customer-home')
+          navigate('/customer-home', { replace: true })
         }
+      } else {
+        setError('Invalid response from server. Missing auth token.')
       }
     } catch (err) {
       setError(err?.message || 'Login failed. Please check your credentials.')
