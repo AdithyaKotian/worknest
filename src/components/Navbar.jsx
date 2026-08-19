@@ -83,6 +83,10 @@ function Navbar() {
   }, [])
 
   const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('worknestToken')
+    localStorage.removeItem('worknestUser')
+    localStorage.removeItem('worknestBooking')
     localStorage.setItem(authStorageKey, 'false')
     window.dispatchEvent(new Event('worknest-auth-change'))
     setShowAccountDrawer(false)
