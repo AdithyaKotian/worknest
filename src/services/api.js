@@ -33,6 +33,8 @@ apiClient.interceptors.response.use(
     if (status === 401) {
       localStorage.removeItem('token')
       localStorage.removeItem('worknestToken')
+      localStorage.removeItem('worknestUser')
+      localStorage.removeItem('worknestBooking')
       localStorage.setItem('worknestMockLoggedIn', 'false')
       window.dispatchEvent(new Event('worknest-auth-change'))
 

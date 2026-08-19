@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from 'express'
 
 export const errorHandler = (
   err: Error,
@@ -6,10 +6,13 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction
 ) => {
-  console.error(err);
+  console.error('[WorkNest Server Error]:', err)
+
+  const isProduction = process.env.NODE_ENV === 'production'
+  const message = isProduction ? 'Internal server error' : err.message || 'Internal server error'
 
   res.status(500).json({
     success: false,
-    message: err.message || "Internal server error",
-  });
-};
+    message,
+  })
+}

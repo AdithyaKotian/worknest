@@ -1,5 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
-import { BrowserRouter, Route, Routes, useLocation, useNavigate, Link } from 'react-router-dom'
+import {
+  BrowserRouter,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+  Link,
+  Navigate,
+} from 'react-router-dom'
 import About from './pages/About'
 import Navbar from './components/Navbar'
 import AdminDashboard from './pages/AdminDashboard'
@@ -21,6 +29,40 @@ import { UserCircle, ChevronDown } from 'lucide-react'
 
 const authStorageKey = 'worknestMockLoggedIn'
 
+function isAuthenticated() {
+  return Boolean(
+    localStorage.getItem('worknestToken') ||
+      localStorage.getItem('token') ||
+      localStorage.getItem(authStorageKey) === 'true'
+  )
+}
+
+function getUserRole() {
+  try {
+    const user = JSON.parse(localStorage.getItem('worknestUser') || '{}')
+    return user.role || 'CUSTOMER'
+  } catch {
+    return 'CUSTOMER'
+  }
+}
+
+function ProtectedRoute({ children }) {
+  if (!isAuthenticated()) {
+    return <Navigate to="/customer-login" replace />
+  }
+  return children
+}
+
+function AdminRoute({ children }) {
+  if (!isAuthenticated()) {
+    return <Navigate to="/customer-login" replace />
+  }
+  if (getUserRole() !== 'ADMIN') {
+    return <Navigate to="/customer-home" replace />
+  }
+  return children
+}
+
 function AdminHeader() {
   const [showAdminMenu, setShowAdminMenu] = useState(false)
   const menuRef = useRef(null)
@@ -39,6 +81,10 @@ function AdminHeader() {
   }, [])
 
   const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('worknestToken')
+    localStorage.removeItem('worknestUser')
+    localStorage.removeItem('worknestBooking')
     localStorage.setItem(authStorageKey, 'false')
     window.dispatchEvent(new Event('worknest-auth-change'))
     setShowAdminMenu(false)
@@ -59,11 +105,16 @@ function AdminHeader() {
           >
             <UserCircle size={20} className="text-[#6B7280]" />
             <span>Admin</span>
-            <ChevronDown size={16} className={`text-[#6B7280] transition-transform duration-200 ${showAdminMenu ? 'rotate-180' : ''}`} />
+            <ChevronDown
+              size={16}
+              className={`text-[#6B7280] transition-transform duration-200 ${
+                showAdminMenu ? 'rotate-180' : ''
+              }`}
+            />
           </button>
 
           {showAdminMenu && (
-            <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-[#E5E7EB] bg-white shadow-xl z-50">
+            <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-[#E5E7EB] bg-white shadow-xl">
               <div className="border-b border-[#E5E7EB] px-4 py-3">
                 <p className="text-sm font-semibold text-[#111827]">Admin</p>
                 <p className="text-xs text-[#6B7280]">admin@worknest.com</p>
@@ -94,22 +145,76 @@ function AppRoutes() {
       {isAdminDashboard ? <AdminHeader /> : <Navbar />}
       <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/available-rooms" element={<AvailableRooms />} />
           <Route path="/room-details/:id" element={<RoomDetails />} />
-          <Route path="/slot-booking" element={<SlotBooking />} />
-          <Route path="/payment" element={<Payment />} />
-          <Route path="/booking-confirmation" element={<BookingConfirmation />} />
           <Route path="/subscription-plans" element={<SubscriptionPlans />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/customer-login" element={<CustomerLogin />} />
           <Route path="/otp-verification" element={<OTPVerification />} />
           <Route path="/create-account" element={<CreateAccount />} />
-          <Route path="/customer-home" element={<CustomerHome />} />
-          <Route path="/order-history" element={<OrderHistory />} />
-          <Route path="/manage-profile" element={<ManageProfile />} />
-          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+
+          {/* Protected Customer Routes */}
+          <Route
+            path="/customer-home"
+            element={
+              <ProtectedRoute>
+                <CustomerHome />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/slot-booking"
+            element={
+              <ProtectedRoute>
+                <SlotBooking />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/payment"
+            element={
+              <ProtectedRoute>
+                <Payment />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/booking-confirmation"
+            element={
+              <ProtectedRoute>
+                <BookingConfirmation />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/order-history"
+            element={
+              <ProtectedRoute>
+                <OrderHistory />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/manage-profile"
+            element={
+              <ProtectedRoute>
+                <ManageProfile />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Protected Admin Route */}
+          <Route
+            path="/admin-dashboard"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
         </Routes>
       </main>
     </div>
