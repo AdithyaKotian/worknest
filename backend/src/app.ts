@@ -9,7 +9,7 @@ import { errorHandler } from './middleware/error.middleware'
 
 const app = express()
 
-// Middleware
+// Middleware: CORS Configuration supporting Vercel deployments and local dev
 const allowedOrigins = [
   'https://worknest.vercel.app',
   'http://localhost:5173',
@@ -19,7 +19,11 @@ app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps, curl, or Postman)
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app')
+      ) {
         callback(null, true)
       } else {
         callback(new Error('Blocked by CORS policy'))
