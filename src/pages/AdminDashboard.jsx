@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import Button from "../components/Button";
 import Card from "../components/Card";
@@ -8,7 +8,6 @@ import SummaryCard from "../components/SummaryCard";
 
 import {
   paymentRecords,
-  roomStatus,
   roomManagementData,
 } from "../data/mockData";
 
@@ -205,15 +204,6 @@ const statusColors = {
   Booked: 'bg-[#1E3A8A]',
   Reserved: 'bg-amber-500',
   Disabled: 'bg-gray-400',
-}
-
-function formatCurrency(amount) {
-  return `₹${amount.toLocaleString('en-IN')}`
-}
-
-function getOccupancy(summary) {
-  const totalRooms = summary.availableRooms + summary.bookedRooms + summary.reservedRooms
-  return totalRooms ? Math.round(((summary.bookedRooms + summary.reservedRooms) / totalRooms) * 100) : 0
 }
 
 function getStatusDistribution(summary) {

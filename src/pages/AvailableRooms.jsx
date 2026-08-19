@@ -1,7 +1,4 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import Button from '../components/Button'
-import Card from '../components/Card'
 import RoomCard from '../components/RoomCard'
 import conferenceRoomImage from '../assets/rooms/conference-room.jpg'
 import meetingRoomImage from '../assets/rooms/meeting-room.jpg'
@@ -45,7 +42,7 @@ function AvailableRooms() {
         }))
 
         setRooms(mappedRooms)
-      } catch (err) {
+      } catch {
         setError('Failed to load available rooms.')
       } finally {
         setLoading(false)

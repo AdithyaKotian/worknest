@@ -75,7 +75,7 @@ function Home() {
         }))
 
         setRooms(mappedRooms)
-      } catch (err) {
+      } catch {
         setError('Unable to load rooms at the moment.')
       } finally {
         setLoading(false)

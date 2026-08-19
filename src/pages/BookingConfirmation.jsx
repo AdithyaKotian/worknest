@@ -7,25 +7,23 @@ import StatusBadge from '../components/StatusBadge'
 function BookingConfirmation() {
   const location = useLocation()
   const navigate = useNavigate()
-  const [booking, setBooking] = useState(null)
 
-  useEffect(() => {
+  const [booking] = useState(() => {
     const rawBooking =
       location.state?.booking || localStorage.getItem('worknestBooking')
-
-    if (!rawBooking) {
-      navigate('/customer-home')
-      return
-    }
-
+    if (!rawBooking) return null
     try {
-      const parsed =
-        typeof rawBooking === 'string' ? JSON.parse(rawBooking) : rawBooking
-      setBooking(parsed)
+      return typeof rawBooking === 'string' ? JSON.parse(rawBooking) : rawBooking
     } catch {
+      return null
+    }
+  })
+
+  useEffect(() => {
+    if (!booking) {
       navigate('/customer-home')
     }
-  }, [location.state, navigate])
+  }, [booking, navigate])
 
   if (!booking) {
     return null

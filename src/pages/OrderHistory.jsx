@@ -16,7 +16,7 @@ function OrderHistory() {
         setLoading(true)
         const response = await getMyBookings()
         setBookings(response.data || [])
-      } catch (err) {
+      } catch {
         setError('Failed to fetch order history.')
       } finally {
         setLoading(false)

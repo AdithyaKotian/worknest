@@ -8,7 +8,7 @@ import { getMyBookings, getRooms } from '../services/api'
 function CustomerHome() {
   const location = useLocation()
   const [showProfileSuccess] = useState(Boolean(location.state?.profileUpdated))
-  const [user, setUser] = useState(() => {
+  const [user] = useState(() => {
     const cached = localStorage.getItem('worknestUser')
     return cached ? JSON.parse(cached) : { name: 'Customer', location: 'Mangalore' }
   })

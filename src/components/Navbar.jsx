@@ -36,7 +36,6 @@ function Navbar() {
   const [currentUser, setCurrentUser] = useState(getUserData)
   const [showNotifications, setShowNotifications] = useState(false)
   const [showAccountDrawer, setShowAccountDrawer] = useState(false)
-  const [notificationCount] = useState(3)
   const [notifications, setNotifications] = useState(mockNotifications)
 
   const notificationRef = useRef(null)

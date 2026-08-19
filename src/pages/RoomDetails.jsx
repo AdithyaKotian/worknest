@@ -47,7 +47,7 @@ function RoomDetails() {
             imageSrc: roomImageMap[r.type] || meetingRoomImage,
           })
         }
-      } catch (err) {
+      } catch {
         setError('Room not found or unavailable.')
       } finally {
         setLoading(false)

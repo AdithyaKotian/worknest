@@ -20,27 +20,24 @@ const loadRazorpayScript = () => {
 function Payment() {
   const location = useLocation()
   const navigate = useNavigate()
-  const [booking, setBooking] = useState(null)
+  const [booking] = useState(() => {
+    const rawBooking =
+      location.state?.booking || localStorage.getItem('worknestBooking')
+    if (!rawBooking) return null
+    try {
+      return typeof rawBooking === 'string' ? JSON.parse(rawBooking) : rawBooking
+    } catch {
+      return null
+    }
+  })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    const rawBooking =
-      location.state?.booking || localStorage.getItem('worknestBooking')
-
-    if (!rawBooking) {
-      navigate('/available-rooms')
-      return
-    }
-
-    try {
-      const parsed =
-        typeof rawBooking === 'string' ? JSON.parse(rawBooking) : rawBooking
-      setBooking(parsed)
-    } catch {
+    if (!booking) {
       navigate('/available-rooms')
     }
-  }, [location.state, navigate])
+  }, [booking, navigate])
 
   const handlePayment = async () => {
     if (!booking) return
