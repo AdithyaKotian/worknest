@@ -40,10 +40,17 @@ function isAuthenticated() {
 function getUserRole() {
   try {
     const user = JSON.parse(localStorage.getItem('worknestUser') || '{}')
-    return user.role || 'CUSTOMER'
+    return (user.role || 'CUSTOMER').toUpperCase()
   } catch {
     return 'CUSTOMER'
   }
+}
+
+function CustomerOnlyRoute({ children }) {
+  if (isAuthenticated() && getUserRole() === 'ADMIN') {
+    return <Navigate to="/admin-dashboard" replace />
+  }
+  return children
 }
 
 function ProtectedRoute({ children }) {
@@ -94,7 +101,7 @@ function AdminHeader() {
   return (
     <header className="border-b border-[#E5E7EB] bg-white/95 shadow-sm shadow-blue-900/5">
       <nav className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-        <Link to="/" className="text-2xl font-bold tracking-tight text-[#1E3A8A]">
+        <Link to="/admin-dashboard" className="text-2xl font-bold tracking-tight text-[#1E3A8A]">
           WorkNest
         </Link>
 
@@ -145,10 +152,24 @@ function AppRoutes() {
       {isAdminDashboard ? <AdminHeader /> : <Navbar />}
       <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Home />} />
+          {/* Public Routes with Admin Redirection */}
+          <Route
+            path="/"
+            element={
+              <CustomerOnlyRoute>
+                <Home />
+              </CustomerOnlyRoute>
+            }
+          />
           <Route path="/about" element={<About />} />
-          <Route path="/available-rooms" element={<AvailableRooms />} />
+          <Route
+            path="/available-rooms"
+            element={
+              <CustomerOnlyRoute>
+                <AvailableRooms />
+              </CustomerOnlyRoute>
+            }
+          />
           <Route path="/room-details/:id" element={<RoomDetails />} />
           <Route path="/subscription-plans" element={<SubscriptionPlans />} />
           <Route path="/contact" element={<Contact />} />
@@ -161,7 +182,9 @@ function AppRoutes() {
             path="/customer-home"
             element={
               <ProtectedRoute>
-                <CustomerHome />
+                <CustomerOnlyRoute>
+                  <CustomerHome />
+                </CustomerOnlyRoute>
               </ProtectedRoute>
             }
           />
