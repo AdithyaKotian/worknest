@@ -59,7 +59,7 @@ function Payment() {
       const order = orderRes.data
 
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_placeholder',
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_TRZScFWJVSDYtw',
         amount: order.amount,
         currency: order.currency || 'INR',
         name: 'WorkNest Co-working',
