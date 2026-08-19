@@ -23,8 +23,17 @@ function getMockLoginState() {
   return typeof window !== 'undefined' && localStorage.getItem(authStorageKey) === 'true'
 }
 
+function getUserData() {
+  try {
+    return JSON.parse(localStorage.getItem('worknestUser') || '{}')
+  } catch {
+    return {}
+  }
+}
+
 function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(getMockLoginState)
+  const [currentUser, setCurrentUser] = useState(getUserData)
   const [showNotifications, setShowNotifications] = useState(false)
   const [showAccountDrawer, setShowAccountDrawer] = useState(false)
   const [notificationCount] = useState(3)
@@ -36,7 +45,10 @@ function Navbar() {
   const unreadCount = notifications.filter(n => !n.read).length
 
   useEffect(() => {
-    const syncLoginState = () => setIsLoggedIn(getMockLoginState())
+    const syncLoginState = () => {
+      setIsLoggedIn(getMockLoginState())
+      setCurrentUser(getUserData())
+    }
 
     window.addEventListener('storage', syncLoginState)
     window.addEventListener('worknest-auth-change', syncLoginState)
@@ -151,7 +163,9 @@ function Navbar() {
                 className="flex items-center gap-2 rounded-lg border border-[#E5E7EB] px-3 py-2 transition-colors duration-200 hover:bg-gray-100"
               >
                 <UserCircle size={20} className="text-[#6B7280]" />
-                <span className="text-sm font-medium text-[#111827]">Adithya</span>
+                <span className="text-sm font-medium text-[#111827]">
+                  {currentUser.name || 'Account'}
+                </span>
                 <ChevronDown size={16} className="text-[#6B7280]" />
               </button>
             </div>
@@ -209,8 +223,12 @@ function Navbar() {
                   <UserCircle size={32} className="text-[#1E3A8A]" />
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-[#111827]">Adithya</h3>
-                  <p className="text-sm text-[#6B7280]">adithya@example.com</p>
+                  <h3 className="text-base font-semibold text-[#111827]">
+                    {currentUser.name || 'User'}
+                  </h3>
+                  <p className="text-sm text-[#6B7280]">
+                    {currentUser.email || 'user@example.com'}
+                  </p>
                 </div>
               </div>
 

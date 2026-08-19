@@ -1,16 +1,29 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Button from '../components/Button'
 import Card from '../components/Card'
 import Input from '../components/Input'
 import RoomCard from '../components/RoomCard'
 import heroCoworkingImage from '../assets/rooms/hero-coworking.jpg'
-import { rooms } from '../data/mockData'
+import conferenceRoomImage from '../assets/rooms/conference-room.jpg'
+import meetingRoomImage from '../assets/rooms/meeting-room.jpg'
+import privateCabinImage from '../assets/rooms/private-cabin.jpg'
+import sharedWorkspaceImage from '../assets/rooms/shared-workspace.jpg'
+import { getRooms } from '../services/api'
 
-const workspaceOrder = ['Cabin', 'Meeting Room', 'Conference Room', 'Open Desk']
-const workspaceRooms = workspaceOrder
-  .map((type) => rooms.find((room) => room.type === type))
-  .filter(Boolean)
+const roomImageMap = {
+  PRIVATE_CABIN: privateCabinImage,
+  MEETING_ROOM: meetingRoomImage,
+  CONFERENCE_ROOM: conferenceRoomImage,
+  SHARED_WORKSPACE: sharedWorkspaceImage,
+}
+
+const roomTypeLabels = {
+  PRIVATE_CABIN: 'Private Cabin',
+  MEETING_ROOM: 'Meeting Room',
+  CONFERENCE_ROOM: 'Conference Room',
+  SHARED_WORKSPACE: 'Shared Workspace',
+}
 
 const startTimeOptions = [
   '09:00 AM',
@@ -41,6 +54,38 @@ const fieldClass =
 
 function Home() {
   const [heroImageFailed, setHeroImageFailed] = useState(false)
+  const [rooms, setRooms] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        setLoading(true)
+        const response = await getRooms()
+        const fetchedRooms = response.data || []
+
+        const mappedRooms = fetchedRooms.map((room) => ({
+          ...room,
+          typeLabel: roomTypeLabels[room.type] || room.type,
+          priceLabel: `₹${room.price}/${room.pricingUnit ? room.pricingUnit.toLowerCase() : 'hour'}`,
+          capacity: room.capacity ? `${room.capacity} People` : 'Flexible',
+          status: room.isActive ? 'Available' : 'Unavailable',
+          imageSrc: roomImageMap[room.type] || meetingRoomImage,
+        }))
+
+        setRooms(mappedRooms)
+      } catch (err) {
+        setError('Unable to load rooms at the moment.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchRooms()
+  }, [])
+
+  const workspaceRooms = rooms.slice(0, 4)
 
   return (
     <div className="space-y-8">
@@ -74,18 +119,15 @@ function Home() {
         <div className="grid gap-4 md:grid-cols-5">
           <label className="block">
             <span className="mb-2 block text-sm font-medium text-[#111827]">Room Type</span>
-            <select
-              className={fieldClass}
-              defaultValue={rooms[0].type}
-            >
-              {workspaceRooms.map((room) => (
-                <option key={room.id} value={room.type}>
-                  {room.type === 'Cabin' ? 'Private Cabin' : room.type === 'Open Desk' ? 'Shared Workspace' : room.type}
-                </option>
-              ))}
+            <select className={fieldClass} defaultValue="ALL">
+              <option value="ALL">All Spaces</option>
+              <option value="PRIVATE_CABIN">Private Cabin</option>
+              <option value="MEETING_ROOM">Meeting Room</option>
+              <option value="CONFERENCE_ROOM">Conference Room</option>
+              <option value="SHARED_WORKSPACE">Shared Workspace</option>
             </select>
           </label>
-          <Input label="Date" name="date" type="date" defaultValue="2026-05-30" />
+          <Input label="Date" name="date" type="date" defaultValue={new Date().toISOString().split('T')[0]} />
           <label className="block">
             <span className="mb-2 block text-sm font-medium text-[#111827]">Start Time</span>
             <select className={fieldClass} defaultValue="10:00 AM" name="startTime">
@@ -116,11 +158,21 @@ function Home() {
 
       <section className="space-y-4">
         <h2 className="text-2xl font-semibold text-[#111827]">Choose your workspace</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {workspaceRooms.map((room) => (
-            <RoomCard key={room.id} room={room} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex min-h-40 items-center justify-center rounded-lg border border-[#E5E7EB] bg-white text-sm text-[#6B7280]">
+            Loading workspaces...
+          </div>
+        ) : error ? (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {error}
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {workspaceRooms.map((room) => (
+              <RoomCard key={room.id} room={room} />
+            ))}
+          </div>
+        )}
       </section>
     </div>
   )

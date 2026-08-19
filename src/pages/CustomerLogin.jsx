@@ -1,31 +1,78 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
 import Card from '../components/Card'
 import Input from '../components/Input'
+import { login } from '../services/api'
 
 function CustomerLogin() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const navigate = useNavigate()
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    try {
+      const response = await login(email, password)
+      const token = response.data?.token
+      const user = response.data?.user
+
+      if (token) {
+        localStorage.setItem('worknestToken', token)
+        localStorage.setItem('token', token)
+        localStorage.setItem('worknestUser', JSON.stringify(user || {}))
+        localStorage.setItem('worknestMockLoggedIn', 'true')
+        window.dispatchEvent(new Event('worknest-auth-change'))
+        navigate('/customer-home')
+      }
+    } catch (err) {
+      setError(err?.message || 'Login failed. Please check your credentials.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-md items-center">
       <Card
         className="w-full"
         title="Login to WorkNest"
-        subtitle="Continue with your mobile number or Gmail."
+        subtitle="Sign in with your registered email and password."
       >
-        <div className="space-y-5">
-          <Input label="Mobile Number" name="mobileNumber" placeholder="Enter mobile number" />
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
 
-          <Button as={Link} to="/otp-verification" className="w-full">
-            Send OTP
-          </Button>
+          <Input
+            label="Email"
+            name="email"
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
 
-          <div className="flex items-center gap-3">
-            <div className="h-px flex-1 bg-[#E5E7EB]" />
-            <span className="text-sm text-[#6B7280]">or</span>
-            <div className="h-px flex-1 bg-[#E5E7EB]" />
-          </div>
+          <Input
+            label="Password"
+            name="password"
+            type="password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
-          <Button variant="outline" className="w-full">
-            Continue with Gmail
+          <Button type="submit" disabled={loading} className="w-full">
+            {loading ? 'Logging in...' : 'Login'}
           </Button>
 
           <p className="text-center text-sm text-[#6B7280]">
@@ -34,7 +81,7 @@ function CustomerLogin() {
               Create Account
             </Link>
           </p>
-        </div>
+        </form>
       </Card>
     </div>
   )

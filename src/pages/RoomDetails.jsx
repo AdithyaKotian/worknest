@@ -1,24 +1,95 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Button from '../components/Button'
 import Card from '../components/Card'
 import StatusBadge from '../components/StatusBadge'
-import { bookingDetails, rooms } from '../data/mockData'
+import conferenceRoomImage from '../assets/rooms/conference-room.jpg'
+import meetingRoomImage from '../assets/rooms/meeting-room.jpg'
+import privateCabinImage from '../assets/rooms/private-cabin.jpg'
+import sharedWorkspaceImage from '../assets/rooms/shared-workspace.jpg'
+import { getRoomById } from '../services/api'
 
-const [startTime = '10:00 AM', endTime = '12:00 PM'] = bookingDetails.time.split(' - ')
-const totalAmount = `₹${bookingDetails.totalAmount}`
+const roomImageMap = {
+  PRIVATE_CABIN: privateCabinImage,
+  MEETING_ROOM: meetingRoomImage,
+  CONFERENCE_ROOM: conferenceRoomImage,
+  SHARED_WORKSPACE: sharedWorkspaceImage,
+}
+
+const roomTypeLabels = {
+  PRIVATE_CABIN: 'Private Cabin',
+  MEETING_ROOM: 'Meeting Room',
+  CONFERENCE_ROOM: 'Conference Room',
+  SHARED_WORKSPACE: 'Shared Workspace',
+}
 
 function RoomDetails() {
   const { id } = useParams()
-  const [failedImageIds, setFailedImageIds] = useState({})
-  const room = rooms.find((item) => item.id === Number(id)) || rooms[0]
-  const hasImage = room.imageSrc && !failedImageIds[room.id]
+  const [room, setRoom] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [imageFailed, setImageFailed] = useState(false)
+
+  useEffect(() => {
+    const fetchRoom = async () => {
+      try {
+        setLoading(true)
+        const response = await getRoomById(id)
+        if (response.data) {
+          const r = response.data
+          setRoom({
+            ...r,
+            typeLabel: roomTypeLabels[r.type] || r.type,
+            priceLabel: `₹${r.price}/${r.pricingUnit ? r.pricingUnit.toLowerCase() : 'hour'}`,
+            capacity: r.capacity ? `${r.capacity} People` : 'Flexible',
+            status: r.isActive ? 'Available' : 'Unavailable',
+            facilities: ['High-speed Wi-Fi', 'Air Conditioning', 'Power Backup', 'Display / Projector'],
+            imageSrc: roomImageMap[r.type] || meetingRoomImage,
+          })
+        }
+      } catch (err) {
+        setError('Room not found or unavailable.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (id) {
+      fetchRoom()
+    }
+  }, [id])
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center text-sm text-[#6B7280]">
+        Loading room details...
+      </div>
+    )
+  }
+
+  if (error || !room) {
+    return (
+      <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
+        <h2 className="text-lg font-semibold text-red-800">Error</h2>
+        <p className="mt-1 text-sm text-red-600">{error || 'Room not found.'}</p>
+        <div className="mt-4">
+          <Button as={Link} to="/available-rooms">
+            Back to Available Rooms
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  const hasImage = room.imageSrc && !imageFailed
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold text-[#111827]">{room.name}</h1>
-        <p className="mt-2 text-sm text-[#6B7280]">{room.description}</p>
+        <p className="mt-2 text-sm text-[#6B7280]">
+          {room.description || `${room.typeLabel} located in ${room.branch?.name || 'our central branch'}.`}
+        </p>
       </div>
 
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
@@ -26,14 +97,9 @@ function RoomDetails() {
           {hasImage ? (
             <img
               src={room.imageSrc}
-              alt={room.imageAlt || room.name}
+              alt={room.name}
               className="absolute inset-0 h-full w-full object-cover"
-              onError={() =>
-                setFailedImageIds((current) => ({
-                  ...current,
-                  [room.id]: true,
-                }))
-              }
+              onError={() => setImageFailed(true)}
             />
           ) : (
             <div className="flex min-h-80 items-center justify-center">
@@ -44,6 +110,16 @@ function RoomDetails() {
 
         <Card title="Room Details">
           <dl className="space-y-4 text-sm">
+            <div className="flex items-start justify-between gap-6">
+              <dt className="font-medium text-[#6B7280]">Type</dt>
+              <dd className="text-right font-semibold text-[#111827]">{room.typeLabel}</dd>
+            </div>
+            <div className="flex items-start justify-between gap-6">
+              <dt className="font-medium text-[#6B7280]">Branch</dt>
+              <dd className="text-right font-semibold text-[#111827]">
+                {room.branch?.name} ({room.branch?.location?.city})
+              </dd>
+            </div>
             <div className="flex items-start justify-between gap-6">
               <dt className="font-medium text-[#6B7280]">Capacity</dt>
               <dd className="text-right font-semibold text-[#111827]">{room.capacity}</dd>
@@ -68,39 +144,21 @@ function RoomDetails() {
         </Card>
       </section>
 
-      <Card title="Booking Date & Time" className="bg-[#F8FAFC]">
-        <div className="grid gap-4 text-sm md:grid-cols-3">
+      <Card title="Quick Booking" className="bg-[#F8FAFC]">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="font-medium text-[#6B7280]">Start Date</p>
-            <p className="mt-1 font-semibold text-[#111827]">{bookingDetails.startDate}</p>
+            <p className="text-base font-semibold text-[#111827]">
+              Ready to book this workspace?
+            </p>
+            <p className="mt-1 text-sm text-[#6B7280]">
+              Proceed to select your time slot and complete confirmation.
+            </p>
           </div>
-          <div>
-            <p className="font-medium text-[#6B7280]">End Date</p>
-            <p className="mt-1 font-semibold text-[#111827]">{bookingDetails.endDate}</p>
-          </div>
-          <div>
-            <p className="font-medium text-[#6B7280]">Start Time</p>
-            <p className="mt-1 font-semibold text-[#111827]">{startTime}</p>
-          </div>
-          <div>
-            <p className="font-medium text-[#6B7280]">End Time</p>
-            <p className="mt-1 font-semibold text-[#111827]">{endTime}</p>
-          </div>
-          <div>
-            <p className="font-medium text-[#6B7280]">Duration</p>
-            <p className="mt-1 font-semibold text-[#111827]">{bookingDetails.duration}</p>
-          </div>
-          <div>
-            <p className="font-medium text-[#6B7280]">Rate</p>
-            <p className="mt-1 font-semibold text-[#111827]">{bookingDetails.rate}</p>
-          </div>
-          <div>
-            <p className="font-medium text-[#6B7280]">Total</p>
-            <p className="mt-1 font-semibold text-[#111827]">{totalAmount}</p>
-          </div>
-        </div>
-        <div className="mt-6">
-          <Button as={Link} to="/slot-booking">
+          <Button
+            as={Link}
+            to="/slot-booking"
+            state={{ selectedRoom: room }}
+          >
             Book Now
           </Button>
         </div>

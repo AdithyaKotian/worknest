@@ -11,7 +11,12 @@ import 'dotenv/config'
 // Required Environment Variables
 // =============================================================================
 
-const REQUIRED_ENV_KEYS = ['DATABASE_URL', 'JWT_SECRET'] as const
+const REQUIRED_ENV_KEYS = [
+  'DATABASE_URL',
+  'JWT_SECRET',
+  'RAZORPAY_KEY_ID',
+  'RAZORPAY_KEY_SECRET',
+] as const
 
 for (const key of REQUIRED_ENV_KEYS) {
   if (!process.env[key]) {
@@ -38,4 +43,10 @@ export const env = {
 
   /** JWT token expiry (defaults to 7d) */
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
+
+  /** Razorpay Key ID */
+  razorpayKeyId: process.env.RAZORPAY_KEY_ID as string,
+
+  /** Razorpay Key Secret */
+  razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET as string,
 } as const

@@ -1,4 +1,6 @@
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { env } from "../config/env";
 import prisma from "../lib/prisma";
 
 const SALT_ROUNDS = 12;
@@ -49,4 +51,30 @@ export const registerUser = async (
   });
 
   return user;
+};
+
+export const generateToken = (userId: string, role: string): string => {
+  return jwt.sign({ userId, role }, env.jwtSecret, {
+    expiresIn: env.jwtExpiresIn,
+  } as jwt.SignOptions);
+};
+
+export const verifyToken = (token: string) => {
+  return jwt.verify(token, env.jwtSecret);
+};
+
+export const findUserByEmail = async (email: string) => {
+  return prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
+};
+
+export const findUserById = async (id: string) => {
+  return prisma.user.findUnique({
+    where: {
+      id,
+    },
+  });
 };
