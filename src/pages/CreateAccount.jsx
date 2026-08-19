@@ -21,8 +21,8 @@ function CreateAccount() {
 
     try {
       const response = await register(name, email, phone, password)
-      const token = response.data?.token
-      const user = response.data?.user
+      const token = response?.data?.token || response?.token
+      const user = response?.data?.user || response?.user
 
       if (token) {
         localStorage.setItem('worknestToken', token)
