@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
 import Card from '../components/Card'
 import StatusBadge from '../components/StatusBadge'
@@ -7,6 +7,7 @@ import { getMyBookings, getRooms } from '../services/api'
 
 function CustomerHome() {
   const location = useLocation()
+  const navigate = useNavigate()
   const [showProfileSuccess] = useState(Boolean(location.state?.profileUpdated))
   const [user] = useState(() => {
     const cached = localStorage.getItem('worknestUser')
@@ -15,6 +16,13 @@ function CustomerHome() {
   const [bookings, setBookings] = useState([])
   const [spaces, setSpaces] = useState([])
   const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (user?.role === 'ADMIN') {
+      navigate('/admin-dashboard', { replace: true })
+      return
+    }
+  }, [user, navigate])
 
   useEffect(() => {
     const fetchData = async () => {

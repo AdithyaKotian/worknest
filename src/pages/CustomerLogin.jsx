@@ -28,7 +28,12 @@ function CustomerLogin() {
         localStorage.setItem('worknestUser', JSON.stringify(user || {}))
         localStorage.setItem('worknestMockLoggedIn', 'true')
         window.dispatchEvent(new Event('worknest-auth-change'))
-        navigate('/customer-home')
+
+        if (user?.role === 'ADMIN') {
+          navigate('/admin-dashboard')
+        } else {
+          navigate('/customer-home')
+        }
       }
     } catch (err) {
       setError(err?.message || 'Login failed. Please check your credentials.')
